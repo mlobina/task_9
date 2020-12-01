@@ -1,28 +1,27 @@
 
-import json
 import xml
+import xml.etree.ElementTree as ET
 from pprint import pprint
 
-def get_data_from_json_file(name):
-    with open(name) as f:
-        json_data = json.load(f)
+def get_data_from_xml_file(name):
+    parser = ET.XMLParser(encoding="utf-8")
+    tree = ET.parse('newsafr.xml', parser)
+    root = tree.getroot()
+    data_xml = root.findall("channel/item")
+    return data_xml
 
-    py_data = json_data['rss']['channel']['items']
-    return py_data
-
-#pprint(get_data_from_json_file('newsafr.json'))
 
 def get_word_list_from_data(data):
-    news = []
+    news_list = []
 
-    for items in data:
-        news.append(items['description'])
+    for news in data:
+        descr = news.find("description")
+        news_list.append(descr.text)
 
-    new_line = ",".join(news)
+    new_line = ",".join(news_list)
     word_list = new_line.split(" ")
     return word_list
 
-#pprint(get_word_list_from_data(py_data))
 
 def get_word_dict(list, letters_number):
     word_dict = {}
@@ -35,19 +34,18 @@ def get_word_dict(list, letters_number):
                 word_dict[word] = 1
     return word_dict
 
-#pprint(get_word_dict(word_list))
 
 def get_sorted_dict(dict):
     sorted_word_dict = sorted(dict.items(), key=lambda x: x[1], reverse=True)
     return sorted_word_dict
 
 
-def main_json(name, top_number=10):
-    dict = get_sorted_dict(get_word_dict(get_word_list_from_data(get_data_from_json_file(name)), letters_number=6))
+def main_xml(name, top_number=10):
+    dict = get_sorted_dict(get_word_dict(get_word_list_from_data(get_data_from_xml_file(name)), letters_number=6))
 
     for id, word in enumerate(dict):
        if id == top_number:
            break
        print(f'Слово "{word[0]}" встречается {word[1]} раз(а)')
 
-main_json('newsafr.json')
+main_xml('newsafr.xml')
